@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Drawing;
-using System.Runtime.Remoting.Messaging;
 
 namespace CatsGenerator
 {
@@ -154,10 +153,9 @@ namespace CatsGenerator
             return res;
         }
 
-        private static RawTexture GenerateNoisyTexture(RawTexture texture, float noisePercentage)
+        private static RawTexture GenerateNoisyTexture(RawTexture texture, RawTexture noiseTexture, float noisePercentage)
         {
             noisePercentage = Math.Max(Math.Min(1f, noisePercentage), 0f);
-            RawTexture noise = GenerateNoise(texture.width, texture.height);
             RawTexture res = new RawTexture(texture.width, texture.height);
 
             int R,G, B;
@@ -166,9 +164,9 @@ namespace CatsGenerator
             {
                 for (int j = 0; j < texture.width; j++)
                 {
-                    R = (int)(texture[i, j].R * tmp + noise[i, j].R * noisePercentage);
-                    G = (int)(texture[i, j].G * tmp + noise[i, j].G * noisePercentage);
-                    B = (int)(texture[i, j].B * tmp + noise[i, j].B * noisePercentage);
+                    R = (int)(texture[i, j].R * tmp + noiseTexture[i, j].R * noisePercentage);
+                    G = (int)(texture[i, j].G * tmp + noiseTexture[i, j].G * noisePercentage);
+                    B = (int)(texture[i, j].B * tmp + noiseTexture[i, j].B * noisePercentage);
                     res[i, j] = Color.FromArgb(R, G, B);
                 }
             }
@@ -201,10 +199,11 @@ namespace CatsGenerator
                         using (Bitmap bitmap = new Bitmap(original))
                         {
                             RawTexture rawTexture = new RawTexture(bitmap);
+                            RawTexture noiseTexture = GenerateNoise(rawTexture.width, rawTexture.height);
 
                             for (int i = 0; i < targetDirectories.Length; i++)
                             {
-                                RawTexture noisyTexture = GenerateNoisyTexture(rawTexture, noisePercentages[i]);
+                                RawTexture noisyTexture = GenerateNoisyTexture(rawTexture, noiseTexture, noisePercentages[i]);
                                 noisyTexture.Save(Path.Combine(targetDirectories[i], Path.GetFileName(imageName)));
                             }
                         }
